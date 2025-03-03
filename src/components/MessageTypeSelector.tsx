@@ -1,10 +1,10 @@
 
 import React from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { HL7MessageType } from '@/types/hl7.types';
+import { HL7TriggerEvent } from '@/types/hl7.types';
 
 interface MessageTypeSelectorProps {
-  messageTypes: Record<string, HL7MessageType>;
+  messageTypes: Record<string, HL7TriggerEvent>;
   selectedType: string;
   onSelectType: (messageType: string) => void;
 }
@@ -26,7 +26,7 @@ const MessageTypeSelector: React.FC<MessageTypeSelectorProps> = ({
         <SelectTrigger className="w-full bg-white">
           <SelectValue placeholder="Select a message type" />
         </SelectTrigger>
-        <SelectContent>
+        <SelectContent className="max-h-[300px]">
           {Object.entries(messageTypes).map(([id, messageType]) => (
             <SelectItem key={id} value={id} className="cursor-pointer">
               <div className="flex flex-col">

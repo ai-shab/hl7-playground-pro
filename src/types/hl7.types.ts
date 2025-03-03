@@ -16,6 +16,28 @@ export interface HL7Segment {
   fields: HL7Field[];
 }
 
+export interface HL7DataType {
+  id: string;
+  name: string;
+  description: string;
+  components: HL7Field[];
+}
+
+export interface HL7Table {
+  id: string;
+  name: string;
+  description: string;
+  values: Record<string, string>;
+}
+
+export interface HL7TriggerEvent {
+  id: string;
+  name: string;
+  description: string;
+  segments: string[];
+  requiredSegments: string[];
+}
+
 export interface HL7MessageType {
   id: string;
   name: string;
@@ -27,8 +49,9 @@ export interface HL7MessageType {
 export interface HL7Version {
   version: string;
   segments: Record<string, HL7Segment>;
-  messageTypes: Record<string, HL7MessageType>;
-  dataTables: Record<string, Record<string, string>>;
+  dataTypes: Record<string, HL7DataType>;
+  tables: Record<string, HL7Table>;
+  triggerEvents: Record<string, HL7TriggerEvent>;
 }
 
 export interface ValidationError {

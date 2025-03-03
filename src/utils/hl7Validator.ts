@@ -1,6 +1,5 @@
 
 import { ValidationError, FieldInfo } from '@/types/hl7.types';
-import { getSegmentDefinition, getMessageTypeDefinition } from './hl7Definitions';
 
 export const parseHL7Message = (message: string): string[] => {
   if (!message || message.trim() === '') {
@@ -30,11 +29,15 @@ export const identifyMessageType = (message: string[]): string | null => {
   return messageType;
 };
 
-export const validateHL7Message = (message: string): ValidationError[] => {
+export const validateHL7Message = (
+  message: string, 
+  segments: Record<string, any>, 
+  triggerEvents: Record<string, any>
+): ValidationError[] => {
   const errors: ValidationError[] = [];
-  const segments = parseHL7Message(message);
+  const parsedSegments = parseHL7Message(message);
   
-  if (segments.length === 0) {
+  if (parsedSegments.length === 0) {
     errors.push({
       line: 0,
       segment: '',
@@ -46,7 +49,7 @@ export const validateHL7Message = (message: string): ValidationError[] => {
   }
 
   // Validate MSH segment exists
-  if (!segments.some(segment => segment.startsWith('MSH'))) {
+  if (!parsedSegments.some(segment => segment.startsWith('MSH'))) {
     errors.push({
       line: 0,
       segment: '',
@@ -57,7 +60,7 @@ export const validateHL7Message = (message: string): ValidationError[] => {
     return errors;
   }
 
-  const messageType = identifyMessageType(segments);
+  const messageType = identifyMessageType(parsedSegments);
   if (!messageType) {
     errors.push({
       line: 0,
@@ -69,7 +72,7 @@ export const validateHL7Message = (message: string): ValidationError[] => {
     return errors;
   }
 
-  const messageTypeDefinition = getMessageTypeDefinition(messageType);
+  const messageTypeDefinition = triggerEvents[messageType];
   if (!messageTypeDefinition) {
     errors.push({
       line: 0,
@@ -82,7 +85,7 @@ export const validateHL7Message = (message: string): ValidationError[] => {
   } else {
     // Validate required segments
     const requiredSegments = messageTypeDefinition.requiredSegments;
-    const presentSegments = segments.map(segment => {
+    const presentSegments = parsedSegments.map(segment => {
       const parts = segment.split('|');
       return parts[0];
     });
@@ -101,10 +104,10 @@ export const validateHL7Message = (message: string): ValidationError[] => {
   }
 
   // Validate each segment
-  segments.forEach((segment, lineIndex) => {
+  parsedSegments.forEach((segment, lineIndex) => {
     const fields = segment.split('|');
     const segmentId = fields[0];
-    const segmentDefinition = getSegmentDefinition(segmentId);
+    const segmentDefinition = segments[segmentId];
 
     if (!segmentDefinition) {
       errors.push({
@@ -137,7 +140,13 @@ export const validateHL7Message = (message: string): ValidationError[] => {
   return errors;
 };
 
-export const getFieldInfo = (message: string[], line: number, position: number): FieldInfo | null => {
+export const getFieldInfo = (
+  message: string[], 
+  line: number, 
+  position: number, 
+  segments: Record<string, any>,
+  tables: Record<string, any>
+): FieldInfo | null => {
   if (line < 0 || line >= message.length) {
     return null;
   }
@@ -154,7 +163,7 @@ export const getFieldInfo = (message: string[], line: number, position: number):
     return null;
   }
 
-  const segmentDefinition = getSegmentDefinition(segmentId);
+  const segmentDefinition = segments[segmentId];
   if (!segmentDefinition) {
     return null;
   }
@@ -168,6 +177,12 @@ export const getFieldInfo = (message: string[], line: number, position: number):
   const fieldDef = segmentDefinition.fields[fieldIndex];
   const fieldValue = fields[position] || '';
   
+  // Get table values if applicable
+  let tableValues: Record<string, string> | undefined;
+  if (fieldDef.table && tables[fieldDef.table]) {
+    tableValues = tables[fieldDef.table].values;
+  }
+
   // Simple validation: just check if required fields have values
   const isValid = !fieldDef.required || (fieldValue && fieldValue.trim() !== '');
   const validationMessage = !isValid 
@@ -183,7 +198,7 @@ export const getFieldInfo = (message: string[], line: number, position: number):
     dataType: fieldDef.dataType,
     length: fieldDef.length,
     table: fieldDef.table,
-    tableValues: fieldDef.table ? {} : undefined, // In a real app, we would look up the table values
+    tableValues,
     value: fieldValue,
     isValid,
     validationMessage

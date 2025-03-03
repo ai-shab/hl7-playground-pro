@@ -1,29 +1,37 @@
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { parseHL7Message, validateHL7Message, getFieldInfo } from '@/utils/hl7Validator';
-import { SAMPLE_MESSAGES } from '@/utils/hl7Definitions';
+import { FieldInfo as FieldInfoType, HL7Segment, HL7Table } from '@/types/hl7.types';
 import FieldInfo from '@/components/FieldInfo';
-import { FieldInfo as FieldInfoType } from '@/types/hl7.types';
+import { useHL7Definitions } from '@/contexts/HL7DefinitionsContext';
 
 interface HL7EditorProps {
   message: string;
   onChange: (message: string) => void;
   onValidate: (errors: any[]) => void;
+  segments: Record<string, HL7Segment>;
+  tables: Record<string, HL7Table>;
 }
 
 const HL7Editor: React.FC<HL7EditorProps> = ({ 
   message, 
   onChange, 
-  onValidate 
+  onValidate,
+  segments,
+  tables
 }) => {
   const editorRef = useRef<HTMLTextAreaElement>(null);
   const [hoveredField, setHoveredField] = useState<FieldInfoType | null>(null);
   const [cursorPosition, setCursorPosition] = useState({ line: 0, column: 0 });
   const [highlightedText, setHighlightedText] = useState<React.ReactNode[]>([]);
   
+  const { triggerEvents } = useHL7Definitions();
   const parsedMessage = useMemo(() => parseHL7Message(message), [message]);
   
-  const errors = useMemo(() => validateHL7Message(message), [message]);
+  const errors = useMemo(() => 
+    validateHL7Message(message, segments, triggerEvents), 
+    [message, segments, triggerEvents]
+  );
   
   // Update the validation errors whenever they change
   useEffect(() => {
@@ -70,7 +78,7 @@ const HL7Editor: React.FC<HL7EditorProps> = ({
       }
     }
     
-    const fieldInfoData = getFieldInfo(parsedMessage, currentLineIndex, fieldPosition);
+    const fieldInfoData = getFieldInfo(parsedMessage, currentLineIndex, fieldPosition, segments, tables);
     setHoveredField(fieldInfoData);
     setCursorPosition({ line: currentLineIndex, column: fieldPosition });
   };
