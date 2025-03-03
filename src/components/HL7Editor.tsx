@@ -49,7 +49,6 @@ const HL7Editor: React.FC<HL7EditorProps> = ({
     if (!editorRef.current) return;
     
     const textarea = editorRef.current;
-    const { clientX, clientY } = e;
     const { selectionStart } = textarea;
     
     // Get the position in the text based on cursor coordinates
@@ -118,13 +117,13 @@ const HL7Editor: React.FC<HL7EditorProps> = ({
       return (
         <div key={lineIndex} className={segmentClass}>
           {/* Segment identifier with additional info */}
-          <div className="hl7-segment-header text-sm text-gray-500 mb-1">
-            {segmentId && <span className="font-semibold">{segmentId}</span>}
-            {segmentName && <span className="ml-2">— {segmentName}</span>}
+          <div className="hl7-segment-header">
+            {segmentId && <span className="hl7-segment-id">{segmentId}</span>}
+            {segmentName && <span className="hl7-segment-name">— {segmentName}</span>}
           </div>
           
           {/* Fields with improved styling */}
-          <div className="hl7-fields flex flex-wrap">
+          <div className="hl7-fields">
             {fields.map((field, fieldIndex) => {
               // Check if this field has validation errors
               const fieldErrors = errors.filter(
@@ -138,7 +137,7 @@ const HL7Editor: React.FC<HL7EditorProps> = ({
                                lineIndex === cursorPosition.line;
               
               // Build field class based on state and validation
-              const fieldClass = `hl7-field inline p-1 rounded m-1 ${hasError ? 'hl7-field-invalid bg-red-100' : ''} 
+              const fieldClass = `hl7-field ${hasError ? 'hl7-field-invalid' : ''} 
                                 ${isHovered ? 'bg-blue-100' : ''} ${isSelected ? 'bg-blue-200 ring-2 ring-blue-400' : ''}
                                 hover:bg-gray-100 cursor-pointer`;
               
@@ -160,7 +159,7 @@ const HL7Editor: React.FC<HL7EditorProps> = ({
                       </div>
                     )}
                   </div>
-                  {fieldIndex < fields.length - 1 && <span className="text-gray-400 mx-0.5">|</span>}
+                  {fieldIndex < fields.length - 1 && <span className="hl7-field-separator">|</span>}
                 </React.Fragment>
               );
             })}
@@ -173,11 +172,10 @@ const HL7Editor: React.FC<HL7EditorProps> = ({
   }, [message, errors, hoveredField, selectedField, cursorPosition, segments, tables]);
   
   return (
-    <div className="relative w-full h-full flex flex-col">
+    <div className="hl7-editor-container">
       <div className="flex-1 relative">
         <div 
           className="absolute top-0 left-0 w-full h-full overflow-auto p-4 hl7-editor"
-          style={{ fontFamily: 'SF Mono, Monaco, Menlo, monospace' }}
         >
           {highlightedText}
         </div>
@@ -187,12 +185,7 @@ const HL7Editor: React.FC<HL7EditorProps> = ({
           onChange={handleEditorChange}
           onMouseMove={handleEditorMouseMove}
           onMouseLeave={handleEditorMouseLeave}
-          className="absolute top-0 left-0 w-full h-full p-4 bg-transparent resize-none hl7-editor caret-primary text-transparent"
-          style={{ 
-            caretColor: 'var(--primary)', 
-            fontFamily: 'SF Mono, Monaco, Menlo, monospace',
-            WebkitTextFillColor: 'transparent'
-          }}
+          className="absolute top-0 left-0 w-full h-full p-4 bg-transparent resize-none hl7-editor-textarea"
           spellCheck={false}
           placeholder="Enter HL7 message here..."
         />
