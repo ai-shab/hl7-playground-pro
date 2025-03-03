@@ -1,4 +1,3 @@
-
 import { HL7Segment, HL7Field, HL7DataType, HL7Table, HL7TriggerEvent } from '@/types/hl7.types';
 
 const API_BASE_URL = 'https://hl7-definition.caristix.com/v2-api/1/HL7v2.5.1';
@@ -560,7 +559,7 @@ const getMockTriggerEvents = (): Record<string, HL7TriggerEvent> => {
     'ADT^A03': {
       id: 'ADT^A03',
       name: 'Discharge/End Visit',
-      description: 'An ADT A03 event is used to communicate information when a patient's stay at a healthcare facility has ended.',
+      description: "An ADT A03 event is used to communicate information when a patient's stay at a healthcare facility has ended.",
       segments: ['MSH', 'EVN', 'PID', 'PD1', 'PV1', 'PV2', 'DB1', 'OBX'],
       requiredSegments: ['MSH', 'EVN', 'PID', 'PV1']
     },
