@@ -15,49 +15,32 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/components/ui/use-toast';
 import HL7Editor from '@/components/HL7Editor';
 import MessageValidator from '@/components/MessageValidator';
-import { HL7MessageType, ValidationError } from '@/types/hl7.types';
-import { 
-  fetchHL7Definitions, 
-  SAMPLE_MESSAGES 
-} from '@/utils/hl7Definitions';
+import { HL7TriggerEvent, ValidationError } from '@/types/hl7.types';
+import { fetchHL7Definitions, SAMPLE_MESSAGES } from '@/utils/hl7Definitions';
 import { validateHL7Message } from '@/utils/hl7Validator';
 import Header from '@/components/Header';
 import MessageTypeSelector from '@/components/MessageTypeSelector';
+import { useHL7Definitions } from '@/contexts/HL7DefinitionsContext';
 
 const Index = () => {
   const { toast } = useToast();
   const [hl7Message, setHL7Message] = useState('');
-  const [messageTypes, setMessageTypes] = useState<Record<string, HL7MessageType>>({});
   const [selectedMessageType, setSelectedMessageType] = useState('');
   const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
   const [isValid, setIsValid] = useState(false);
   const [activeTab, setActiveTab] = useState('editor');
   
-  // Load the HL7 definitions on component mount
+  // Use the context instead of direct API calls
+  const { triggerEvents, segments, tables } = useHL7Definitions();
+  
+  // Load a default message type and sample message on component mount
   useEffect(() => {
-    const loadDefinitions = async () => {
-      try {
-        const definitions = await fetchHL7Definitions();
-        setMessageTypes(definitions.messageTypes);
-        
-        // Set a default message type and sample message
-        if (Object.keys(definitions.messageTypes).length > 0) {
-          const defaultType = Object.keys(definitions.messageTypes)[0];
-          setSelectedMessageType(defaultType);
-          setHL7Message(SAMPLE_MESSAGES[defaultType] || '');
-        }
-      } catch (error) {
-        console.error('Failed to load HL7 definitions', error);
-        toast({
-          title: 'Error',
-          description: 'Failed to load HL7 definitions',
-          variant: 'destructive',
-        });
-      }
-    };
-    
-    loadDefinitions();
-  }, [toast]);
+    if (Object.keys(triggerEvents).length > 0) {
+      const defaultType = Object.keys(triggerEvents)[0];
+      setSelectedMessageType(defaultType);
+      setHL7Message(SAMPLE_MESSAGES[defaultType] || '');
+    }
+  }, [triggerEvents]);
   
   // Handle message type selection
   const handleMessageTypeChange = (messageType: string) => {
@@ -85,7 +68,7 @@ const Index = () => {
   
   // Force a validation run
   const runValidation = () => {
-    const errors = validateHL7Message(hl7Message);
+    const errors = validateHL7Message(hl7Message, segments, triggerEvents);
     setValidationErrors(errors);
     setIsValid(errors.filter(e => e.severity === 'error').length === 0);
     
@@ -117,7 +100,7 @@ const Index = () => {
         <div className="mb-8 flex flex-col md:flex-row md:items-end gap-6">
           <div className="flex-1">
             <MessageTypeSelector 
-              messageTypes={messageTypes}
+              messageTypes={triggerEvents}
               selectedType={selectedMessageType}
               onSelectType={handleMessageTypeChange}
             />
@@ -157,6 +140,8 @@ const Index = () => {
                       message={hl7Message}
                       onChange={handleMessageChange}
                       onValidate={handleValidate}
+                      segments={segments}
+                      tables={tables}
                     />
                   </div>
                 </TabsContent>
@@ -176,7 +161,7 @@ const Index = () => {
               <CardContent className="p-6">
                 <h2 className="text-lg font-medium mb-3">Message Information</h2>
                 
-                {selectedMessageType && messageTypes[selectedMessageType] ? (
+                {selectedMessageType && triggerEvents[selectedMessageType] ? (
                   <div className="space-y-4">
                     <div>
                       <h3 className="text-sm font-medium text-gray-500">Message Type</h3>
@@ -185,13 +170,13 @@ const Index = () => {
                     
                     <div>
                       <h3 className="text-sm font-medium text-gray-500">Description</h3>
-                      <p className="text-sm">{messageTypes[selectedMessageType].description}</p>
+                      <p className="text-sm">{triggerEvents[selectedMessageType].description}</p>
                     </div>
                     
                     <div>
                       <h3 className="text-sm font-medium text-gray-500">Required Segments</h3>
                       <div className="flex flex-wrap gap-2 mt-1">
-                        {messageTypes[selectedMessageType].requiredSegments.map(segment => (
+                        {triggerEvents[selectedMessageType].requiredSegments.map(segment => (
                           <Badge key={segment} variant="secondary" className="font-mono">
                             {segment}
                           </Badge>
@@ -202,8 +187,8 @@ const Index = () => {
                     <div>
                       <h3 className="text-sm font-medium text-gray-500">Optional Segments</h3>
                       <div className="flex flex-wrap gap-2 mt-1">
-                        {messageTypes[selectedMessageType].segments
-                          .filter(segment => !messageTypes[selectedMessageType].requiredSegments.includes(segment))
+                        {triggerEvents[selectedMessageType].segments
+                          .filter(segment => !triggerEvents[selectedMessageType].requiredSegments.includes(segment))
                           .map(segment => (
                             <Badge key={segment} variant="outline" className="font-mono">
                               {segment}

@@ -1,4 +1,4 @@
-import { HL7Segment, HL7MessageType, HL7Version } from '@/types/hl7.types';
+import { HL7Segment, HL7MessageType, HL7Version, HL7Table } from '@/types/hl7.types';
 
 // Note: This file will be replaced by the API fetching logic
 // This is just a fallback with minimal definitions
@@ -102,7 +102,10 @@ export const HL7_DEFINITIONS: HL7Version = {
     }
   },
   dataTypes: {},
-  tables: {},
+  tables: {
+    // Fixed: tables should have a structure where values are Record<string, string>
+    // This was empty in the original code, so we're not changing any functionality
+  },
   triggerEvents: {
     'ADT^A01': {
       id: 'ADT^A01',
@@ -187,7 +190,8 @@ export const getMessageTypeDefinition = (messageType: string): HL7MessageType | 
 };
 
 export const getTableValues = (tableId: string): Record<string, string> | undefined => {
-  return HL7_DEFINITIONS.tables[tableId];
+  const table = HL7_DEFINITIONS.tables[tableId];
+  return table ? table.values : undefined;
 };
 
 // The API fetching will replace this
