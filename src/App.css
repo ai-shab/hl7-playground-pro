@@ -1,3 +1,4 @@
+
 #root {
   max-width: 1280px;
   margin: 0 auto;
@@ -40,3 +41,27 @@
 .read-the-docs {
   color: #888;
 }
+
+/* HL7 Editor Styles */
+.hl7-segment {
+  margin-bottom: 0.75rem;
+  text-align: left;
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+  background-color: #f9fafb;
+  border-left: 3px solid #e5e7eb;
+}
+
+.hl7-segment-known {
+  border-left-color: #93c5fd;
+}
+
+.hl7-field {
+  position: relative;
+  transition: all 0.2s;
+}
+
+.hl7-field-invalid {
+  border-bottom: 2px dotted #ef4444;
+}
+

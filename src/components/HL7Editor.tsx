@@ -22,6 +22,7 @@ const HL7Editor: React.FC<HL7EditorProps> = ({
 }) => {
   const editorRef = useRef<HTMLTextAreaElement>(null);
   const [hoveredField, setHoveredField] = useState<FieldInfoType | null>(null);
+  const [selectedField, setSelectedField] = useState<FieldInfoType | null>(null);
   const [cursorPosition, setCursorPosition] = useState({ line: 0, column: 0 });
   const [highlightedText, setHighlightedText] = useState<React.ReactNode[]>([]);
   
@@ -52,7 +53,6 @@ const HL7Editor: React.FC<HL7EditorProps> = ({
     const { selectionStart } = textarea;
     
     // Get the position in the text based on cursor coordinates
-    // This is a simplified approximation
     const textBeforeCursor = textarea.value.substring(0, selectionStart);
     const linesBeforeCursor = textBeforeCursor.split('\n');
     const currentLineIndex = linesBeforeCursor.length - 1;
@@ -88,6 +88,14 @@ const HL7Editor: React.FC<HL7EditorProps> = ({
     setHoveredField(null);
   };
   
+  // Handle field click to select it
+  const handleFieldClick = (lineIndex: number, fieldIndex: number) => {
+    const fieldInfoData = getFieldInfo(parsedMessage, lineIndex, fieldIndex, segments, tables);
+    setSelectedField(fieldInfoData);
+    // When a field is clicked, also set its position
+    setCursorPosition({ line: lineIndex, column: fieldIndex });
+  };
+  
   // Render the message with syntax highlighting
   useEffect(() => {
     if (!message) {
@@ -100,41 +108,75 @@ const HL7Editor: React.FC<HL7EditorProps> = ({
       const fields = line.split('|');
       const segmentId = fields[0];
       
+      // Get segment definition to enhance display
+      const segmentDefinition = segments[segmentId];
+      const segmentName = segmentDefinition ? segmentDefinition.name : '';
+      
+      // Create a special class for the segment line
+      const segmentClass = `hl7-segment ${segmentDefinition ? 'hl7-segment-known' : ''}`;
+      
       return (
-        <div key={lineIndex} className="hl7-segment">
-          {fields.map((field, fieldIndex) => {
-            // Check if this field has validation errors
-            const fieldErrors = errors.filter(
-              err => err.line === lineIndex && err.field === fieldIndex
-            );
-            
-            const hasError = fieldErrors.length > 0;
-            const className = `hl7-field inline ${hasError ? 'hl7-field-invalid' : ''}`;
-            
-            return (
-              <React.Fragment key={`${lineIndex}-${fieldIndex}`}>
-                <span className={className}>
-                  {field}
-                  {fieldIndex === cursorPosition.line && fieldIndex === cursorPosition.column && hoveredField && (
-                    <FieldInfo fieldInfo={hoveredField} />
-                  )}
-                </span>
-                {fieldIndex < fields.length - 1 && <span className="text-gray-400">|</span>}
-              </React.Fragment>
-            );
-          })}
+        <div key={lineIndex} className={segmentClass}>
+          {/* Segment identifier with additional info */}
+          <div className="hl7-segment-header text-sm text-gray-500 mb-1">
+            {segmentId && <span className="font-semibold">{segmentId}</span>}
+            {segmentName && <span className="ml-2">— {segmentName}</span>}
+          </div>
+          
+          {/* Fields with improved styling */}
+          <div className="hl7-fields flex flex-wrap">
+            {fields.map((field, fieldIndex) => {
+              // Check if this field has validation errors
+              const fieldErrors = errors.filter(
+                err => err.line === lineIndex && err.field === fieldIndex
+              );
+              
+              const hasError = fieldErrors.length > 0;
+              const isHovered = lineIndex === cursorPosition.line && fieldIndex === cursorPosition.column && hoveredField;
+              const isSelected = selectedField && selectedField.segment === segmentId && 
+                               selectedField.field === fieldIndex && 
+                               lineIndex === cursorPosition.line;
+              
+              // Build field class based on state and validation
+              const fieldClass = `hl7-field inline p-1 rounded m-1 ${hasError ? 'hl7-field-invalid bg-red-100' : ''} 
+                                ${isHovered ? 'bg-blue-100' : ''} ${isSelected ? 'bg-blue-200 ring-2 ring-blue-400' : ''}
+                                hover:bg-gray-100 cursor-pointer`;
+              
+              // Get field definition for tooltip if available
+              const fieldName = segmentDefinition && segmentDefinition.fields[fieldIndex - 1] ? 
+                              segmentDefinition.fields[fieldIndex - 1].name : '';
+              
+              return (
+                <React.Fragment key={`${lineIndex}-${fieldIndex}`}>
+                  <div 
+                    className={fieldClass}
+                    onClick={() => handleFieldClick(lineIndex, fieldIndex)}
+                    title={`${segmentId}-${fieldIndex} ${fieldName ? ': ' + fieldName : ''}`}
+                  >
+                    {field}
+                    {(isHovered || isSelected) && hoveredField && (
+                      <div className="absolute z-10 mt-2">
+                        <FieldInfo fieldInfo={isSelected ? selectedField! : hoveredField} />
+                      </div>
+                    )}
+                  </div>
+                  {fieldIndex < fields.length - 1 && <span className="text-gray-400 mx-0.5">|</span>}
+                </React.Fragment>
+              );
+            })}
+          </div>
         </div>
       );
     });
     
     setHighlightedText(renderedLines);
-  }, [message, errors, hoveredField, cursorPosition]);
+  }, [message, errors, hoveredField, selectedField, cursorPosition, segments, tables]);
   
   return (
     <div className="relative w-full h-full flex flex-col">
       <div className="flex-1 relative">
         <div 
-          className="absolute top-0 left-0 w-full h-full overflow-auto p-4 hl7-editor pointer-events-none"
+          className="absolute top-0 left-0 w-full h-full overflow-auto p-4 hl7-editor"
           style={{ fontFamily: 'SF Mono, Monaco, Menlo, monospace' }}
         >
           {highlightedText}
