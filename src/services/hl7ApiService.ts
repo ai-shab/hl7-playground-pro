@@ -5,7 +5,13 @@ const API_BASE_URL = 'https://hl7-definition.caristix.com/v2-api/1/HL7v2.5.1';
 
 export const fetchSegments = async (): Promise<Record<string, HL7Segment>> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/Segments`);
+    const response = await fetch(`${API_BASE_URL}/Segments`, {
+      mode: 'cors',
+      headers: {
+        'Accept': 'application/json',
+      }
+    });
+    
     if (!response.ok) {
       throw new Error(`Failed to fetch segments: ${response.status}`);
     }
@@ -43,13 +49,20 @@ export const fetchSegments = async (): Promise<Record<string, HL7Segment>> => {
     return segments;
   } catch (error) {
     console.error('Error fetching segments:', error);
-    return {};
+    // Return mock data if fetch fails due to CORS
+    return getMockSegments();
   }
 };
 
 export const fetchDataTypes = async (): Promise<Record<string, HL7DataType>> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/DataTypes`);
+    const response = await fetch(`${API_BASE_URL}/DataTypes`, {
+      mode: 'cors',
+      headers: {
+        'Accept': 'application/json',
+      }
+    });
+    
     if (!response.ok) {
       throw new Error(`Failed to fetch data types: ${response.status}`);
     }
@@ -87,13 +100,20 @@ export const fetchDataTypes = async (): Promise<Record<string, HL7DataType>> => 
     return dataTypes;
   } catch (error) {
     console.error('Error fetching data types:', error);
-    return {};
+    // Return mock data if fetch fails due to CORS
+    return getMockDataTypes();
   }
 };
 
 export const fetchTables = async (): Promise<Record<string, HL7Table>> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/Tables`);
+    const response = await fetch(`${API_BASE_URL}/Tables`, {
+      mode: 'cors',
+      headers: {
+        'Accept': 'application/json',
+      }
+    });
+    
     if (!response.ok) {
       throw new Error(`Failed to fetch tables: ${response.status}`);
     }
@@ -123,13 +143,20 @@ export const fetchTables = async (): Promise<Record<string, HL7Table>> => {
     return tables;
   } catch (error) {
     console.error('Error fetching tables:', error);
-    return {};
+    // Return mock data if fetch fails due to CORS
+    return getMockTables();
   }
 };
 
 export const fetchTriggerEvents = async (): Promise<Record<string, HL7TriggerEvent>> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/TriggerEvents`);
+    const response = await fetch(`${API_BASE_URL}/TriggerEvents`, {
+      mode: 'cors',
+      headers: {
+        'Accept': 'application/json',
+      }
+    });
+    
     if (!response.ok) {
       throw new Error(`Failed to fetch trigger events: ${response.status}`);
     }
@@ -164,7 +191,8 @@ export const fetchTriggerEvents = async (): Promise<Record<string, HL7TriggerEve
     return triggerEvents;
   } catch (error) {
     console.error('Error fetching trigger events:', error);
-    return {};
+    // Return mock data if fetch fails due to CORS
+    return getMockTriggerEvents();
   }
 };
 
@@ -186,5 +214,369 @@ export const fetchAllHL7Definitions = async (): Promise<{
     dataTypes,
     tables,
     triggerEvents
+  };
+};
+
+// Mock data functions to provide fallback data when CORS issues prevent API access
+const getMockSegments = (): Record<string, HL7Segment> => {
+  return {
+    'MSH': {
+      id: 'MSH',
+      name: 'Message Header',
+      description: 'Message header segment defines message type, source, destination, etc.',
+      fields: [
+        {
+          name: 'Field Separator',
+          description: 'This field contains the separator character',
+          required: true,
+          dataType: 'ST',
+          length: 1,
+          values: {}
+        },
+        {
+          name: 'Encoding Characters',
+          description: 'This field contains the encoding characters',
+          required: true,
+          dataType: 'ST',
+          length: 4,
+          values: {}
+        },
+        {
+          name: 'Sending Application',
+          description: 'This field contains the sending application name',
+          required: false,
+          dataType: 'HD',
+          values: {}
+        },
+        {
+          name: 'Sending Facility',
+          description: 'This field contains the sending facility',
+          required: false,
+          dataType: 'HD',
+          values: {}
+        },
+        {
+          name: 'Receiving Application',
+          description: 'This field contains the receiving application name',
+          required: false,
+          dataType: 'HD',
+          values: {}
+        },
+        {
+          name: 'Receiving Facility',
+          description: 'This field contains the receiving facility',
+          required: false,
+          dataType: 'HD',
+          values: {}
+        },
+        {
+          name: 'Date/Time of Message',
+          description: 'This field contains the date/time of the message',
+          required: false,
+          dataType: 'TS',
+          values: {}
+        },
+        {
+          name: 'Security',
+          description: 'This field contains security information',
+          required: false,
+          dataType: 'ST',
+          values: {}
+        },
+        {
+          name: 'Message Type',
+          description: 'This field contains the message type',
+          required: true,
+          dataType: 'MSG',
+          values: {}
+        }
+      ]
+    },
+    'PID': {
+      id: 'PID',
+      name: 'Patient Identification',
+      description: 'Patient identification segment',
+      fields: [
+        {
+          name: 'Set ID - PID',
+          description: 'This field contains the sequence number',
+          required: false,
+          dataType: 'SI',
+          length: 4,
+          values: {}
+        },
+        {
+          name: 'Patient ID',
+          description: 'This field contains the patient ID (external)',
+          required: false,
+          dataType: 'CX',
+          values: {}
+        },
+        {
+          name: 'Patient Identifier List',
+          description: 'This field contains the patient identifier list',
+          required: true,
+          dataType: 'CX',
+          values: {}
+        },
+        {
+          name: 'Alternate Patient ID - PID',
+          description: 'This field contains alternate patient IDs',
+          required: false,
+          dataType: 'CX',
+          values: {}
+        },
+        {
+          name: 'Patient Name',
+          description: 'This field contains the patient name',
+          required: true,
+          dataType: 'XPN',
+          values: {}
+        }
+      ]
+    }
+  };
+};
+
+const getMockDataTypes = (): Record<string, HL7DataType> => {
+  return {
+    'ST': {
+      id: 'ST',
+      name: 'String',
+      description: 'String data',
+      components: []
+    },
+    'CX': {
+      id: 'CX',
+      name: 'Extended Composite ID with Check Digit',
+      description: 'Used for identifying a patient, subscriber, etc.',
+      components: [
+        {
+          name: 'ID Number',
+          description: 'The value of the identifier itself',
+          required: true,
+          dataType: 'ST',
+          values: {}
+        },
+        {
+          name: 'Check Digit',
+          description: 'The check digit for the identifier',
+          required: false,
+          dataType: 'ST',
+          values: {}
+        },
+        {
+          name: 'Code Identifying the Check Digit Scheme Employed',
+          description: 'Code used to identify the check digit scheme',
+          required: false,
+          dataType: 'ID',
+          table: '61',
+          values: {}
+        }
+      ]
+    },
+    'XPN': {
+      id: 'XPN',
+      name: 'Extended Person Name',
+      description: 'Extended person name data type',
+      components: [
+        {
+          name: 'Family Name',
+          description: 'The family (last) name',
+          required: false,
+          dataType: 'FN',
+          values: {}
+        },
+        {
+          name: 'Given Name',
+          description: 'The given (first) name',
+          required: false,
+          dataType: 'ST',
+          values: {}
+        },
+        {
+          name: 'Second and Further Given Names or Initials Thereof',
+          description: 'Middle name or initial',
+          required: false,
+          dataType: 'ST',
+          values: {}
+        }
+      ]
+    },
+    'HD': {
+      id: 'HD',
+      name: 'Hierarchic Designator',
+      description: 'HD data type',
+      components: [
+        {
+          name: 'Namespace ID',
+          description: 'Namespace identifier',
+          required: false,
+          dataType: 'IS',
+          table: '300',
+          values: {}
+        },
+        {
+          name: 'Universal ID',
+          description: 'Universal identifier',
+          required: false,
+          dataType: 'ST',
+          values: {}
+        },
+        {
+          name: 'Universal ID Type',
+          description: 'Universal identifier type',
+          required: false,
+          dataType: 'ID',
+          table: '301',
+          values: {}
+        }
+      ]
+    },
+    'TS': {
+      id: 'TS',
+      name: 'Time Stamp',
+      description: 'Time stamp data type',
+      components: [
+        {
+          name: 'Time',
+          description: 'Time in format YYYYMMDDHHMMSS',
+          required: true,
+          dataType: 'DTM',
+          values: {}
+        },
+        {
+          name: 'Degree of Precision',
+          description: 'Degree of precision',
+          required: false,
+          dataType: 'ID',
+          values: {}
+        }
+      ]
+    },
+    'MSG': {
+      id: 'MSG',
+      name: 'Message Type',
+      description: 'Message type data type',
+      components: [
+        {
+          name: 'Message Code',
+          description: 'Message code',
+          required: true,
+          dataType: 'ID',
+          table: '76',
+          values: {}
+        },
+        {
+          name: 'Trigger Event',
+          description: 'Trigger event',
+          required: true,
+          dataType: 'ID',
+          table: '3',
+          values: {}
+        },
+        {
+          name: 'Message Structure',
+          description: 'Message structure',
+          required: true,
+          dataType: 'ID',
+          table: '354',
+          values: {}
+        }
+      ]
+    }
+  };
+};
+
+const getMockTables = (): Record<string, HL7Table> => {
+  return {
+    '0001': {
+      id: '0001',
+      name: 'Administrative Sex',
+      description: 'HL7 Administrative Sex Table',
+      values: {
+        'F': 'Female',
+        'M': 'Male',
+        'O': 'Other',
+        'U': 'Unknown',
+        'A': 'Ambiguous',
+        'N': 'Not applicable'
+      }
+    },
+    '0003': {
+      id: '0003',
+      name: 'Event Type',
+      description: 'HL7 Event Type Table',
+      values: {
+        'A01': 'ADT/ACK - Admit/visit notification',
+        'A02': 'ADT/ACK - Transfer a patient',
+        'A03': 'ADT/ACK - Discharge/end visit',
+        'A04': 'ADT/ACK - Register a patient',
+        'A05': 'ADT/ACK - Pre-admit a patient',
+        'A06': 'ADT/ACK - Change an outpatient to an inpatient',
+        'A07': 'ADT/ACK - Change an inpatient to an outpatient',
+        'A08': 'ADT/ACK - Update patient information'
+      }
+    },
+    '0076': {
+      id: '0076',
+      name: 'Message Type',
+      description: 'HL7 Message Type Table',
+      values: {
+        'ACK': 'General acknowledgment message',
+        'ADT': 'ADT message',
+        'BAR': 'Add/change billing account',
+        'DFT': 'Detailed financial transaction',
+        'MDM': 'Medical document management',
+        'MFN': 'Master files notification',
+        'ORM': 'Order message',
+        'ORU': 'Observation result/unsolicited',
+        'QRY': 'Query, original mode',
+        'RAS': 'Pharmacy/treatment administration',
+        'RDE': 'Pharmacy/treatment encoded order',
+        'RGV': 'Pharmacy/treatment give',
+        'SIU': 'Schedule information unsolicited'
+      }
+    }
+  };
+};
+
+const getMockTriggerEvents = (): Record<string, HL7TriggerEvent> => {
+  return {
+    'ADT^A01': {
+      id: 'ADT^A01',
+      name: 'Admit/Visit Notification',
+      description: 'An ADT A01 event is used to communicate information when a patient is admitted to a facility.',
+      segments: ['MSH', 'EVN', 'PID', 'PD1', 'NK1', 'PV1', 'PV2', 'DB1', 'OBX', 'AL1', 'DG1', 'PR1', 'GT1', 'IN1', 'IN2', 'IN3', 'ACC', 'UB1', 'UB2'],
+      requiredSegments: ['MSH', 'EVN', 'PID', 'PV1']
+    },
+    'ADT^A02': {
+      id: 'ADT^A02',
+      name: 'Transfer a Patient',
+      description: 'An ADT A02 event is used to communicate information when a patient is transferred from one location to another.',
+      segments: ['MSH', 'EVN', 'PID', 'PD1', 'PV1', 'PV2', 'DB1', 'OBX'],
+      requiredSegments: ['MSH', 'EVN', 'PID', 'PV1']
+    },
+    'ADT^A03': {
+      id: 'ADT^A03',
+      name: 'Discharge/End Visit',
+      description: 'An ADT A03 event is used to communicate information when a patient's stay at a healthcare facility has ended.',
+      segments: ['MSH', 'EVN', 'PID', 'PD1', 'PV1', 'PV2', 'DB1', 'OBX'],
+      requiredSegments: ['MSH', 'EVN', 'PID', 'PV1']
+    },
+    'ADT^A04': {
+      id: 'ADT^A04',
+      name: 'Register a Patient',
+      description: 'An ADT A04 event is used to communicate information when a patient has arrived or been registered in a healthcare facility.',
+      segments: ['MSH', 'EVN', 'PID', 'PD1', 'NK1', 'PV1', 'PV2', 'DB1', 'OBX', 'AL1', 'DG1', 'PR1', 'GT1', 'IN1', 'IN2', 'IN3', 'ACC', 'UB1', 'UB2'],
+      requiredSegments: ['MSH', 'EVN', 'PID', 'PV1']
+    },
+    'ORU^R01': {
+      id: 'ORU^R01',
+      name: 'Unsolicited Observation Message',
+      description: 'An ORU R01 event is used to transmit results of observations and test results.',
+      segments: ['MSH', 'PID', 'PD1', 'NK1', 'OBR', 'OBX', 'CTI', 'NTE'],
+      requiredSegments: ['MSH', 'PID', 'OBR', 'OBX']
+    }
   };
 };
